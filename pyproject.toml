@@ -1,0 +1,21 @@
+[project]
+name = "spanalysis"
+version = "0.1.0"
+description = "An end-to-end project which takes the hourly stock data and predicts the next hour prices."
+readme = "README.md"
+authors = [
+    { name = "Nouri Muhammad", email = "nouri.muhammad1991@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "pandas>=3.0.5",
+    "requests>=2.34.2",
+    "yfinance>=1.7.0",
+]
+
+[project.scripts]
+spanalysis = "spanalysis:main"
+
+[build-system]
+requires = ["uv_build>=0.12.3,<0.13.0"]
+build-backend = "uv_build"
