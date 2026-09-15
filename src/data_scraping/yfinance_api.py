@@ -17,7 +17,7 @@ class YFinanceManager:
     }
 
     def __init__(self, company_list_file, look_back_days: int | None = None, interval: str = '1h', \
-                 output_dir: str | Path = "data/raw", sector: str | None=None):
+                 output_dir: str | Path = "data/company_data", sector: str | None=None):
         self.company_list_file = company_list_file
         self.interval = self.interval_validation(interval)
         self.look_back_days = look_back_days
@@ -132,11 +132,13 @@ class YFinanceManager:
             Path: file path to save the result.
         """
         base_dir = Path(self.output_dir)
+        print(base_dir)
         if self.sector:
             filepath = base_dir/f"{self.sector}"/f"{ticker}.csv"
         else:
-            filepath = base_dir/"data"/f"{ticker}.csv"
+            filepath = base_dir/"SP500"/f"{ticker}.csv"
         filepath.parent.mkdir(parents=True, exist_ok=True) 
+        print(filepath)
         return filepath
 
     def download_all(self) -> None:
