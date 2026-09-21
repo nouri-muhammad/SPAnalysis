@@ -52,6 +52,7 @@ env/
 data/
 data/raw/
 data/processed/
+logs/
 
 
 # ======================
