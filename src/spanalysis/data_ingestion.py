@@ -18,38 +18,33 @@ class DataIngestionConfig:
 
 
 class DataIngestion:
-    def __init__(self):
-        self.data_path = DataIngestionConfig()
+    def __init__(self, df):
+        self.df = df
 
     def initiate_data_ingestion(self):
         logging.info("initiating the data ingestion method.")
 
         try:
+            tscv = TimeSeriesSplit(n_splits=100, test_size=1)
+            for fold, (train_index, test_index) in  enumerate(tscv.split(self.df), start=1):
+                train = self.df.iloc[train_index]
+                test = self.df.iloc[test_index]
 
-            for file_path in self.data_path.data_path.glob("*.csv"):
-                df = pd.read_csv(filepath_or_buffer=file_path)
-                df["Datetime"] = pd.to_datetime(df["Datetime"], utc=True)
-                logging.info(f"Read the {file_path} csv file")
+                # logging.info(
+                #     f"Fold {fold}: "
+                #     f"Train={len(train)} observations,"
+                #     # f"({df['Datetime'].iloc[train_index[0]]} → "
+                #     # f"{df['Datetime'].iloc[train_index[-1]]}), "
+                #     f"Test={len(test)} observations,"
+                #     # f"({df['Datetime'].iloc[test_index[0]]} → "
+                #     # f"{df['Datetime'].iloc[test_index[-1]]})"
+                # )
+                # logging.info(f"Yielding Fold: {fold}, train={len(train)}, and test={len(test)} observation")
+                yield (
+                    train,
+                    test
+                )
 
-                tscv = TimeSeriesSplit(n_splits=100, test_size=1)
-                for fold, (train_index, test_index) in  enumerate(tscv.split(df), start=1):
-                    train = df[['Close']].iloc[train_index]
-                    test = df[['Close']].iloc[test_index]
-
-                    # print(train_index, test_index)
-                    logging.info(
-                        f"Fold {fold}: "
-                        f"Train={len(train)} observations "
-                        # f"({df['Datetime'].iloc[train_index[0]]} → "
-                        # f"{df['Datetime'].iloc[train_index[-1]]}), "
-                        f"Test={len(test)} observations "
-                        # f"({df['Datetime'].iloc[test_index[0]]} → "
-                        # f"{df['Datetime'].iloc[test_index[-1]]})"
-                    )
-            return train, test
-
-                    #TODO: Here the data should be sent to data transformation and then to the model selection class to find the best fitting model
-            
         except Exception as e:
             raise CustomException(e, sys)
 

@@ -29,72 +29,53 @@ When to Use: If using LSTMs, Transformers, DeepAR, or Temporal Convolutional Net
 How it Works: Inside your model's data generator/dataset class, grab the X lookback window. Compute its local mean and standard deviation. Divide the window by these stats, and use those same stats to scale the target Y value.
 """
 
+
+@dataclass
+class DataTransformationConfig:
+    data_path = Path('data/company_data/energy')
+
+
 class DataTransformation:
-    def __init__(self, train, test):
+    def __init__(self) -> pd.DataFrame:
         """
-        This class creates transformer objects and transofrms train data.
+        This class creates transformer objects and clean the entire data. 
+        The data does not need any specific transformation, thus, we just check for null values. 
         Args:
-            train (_type_): train data
+            feature (str): target column name
         """
-        self.train = train
-        self.test = test
-        self.feature = ["Close"]
+        self.data_path = DataTransformationConfig()
 
     def interpolate_neighbors(self, X: pd.DataFrame) -> pd.DataFrame:
         """
         This method fills the null values based on the average of the previous and next value in the dataset.
         Args:
-            X (_type_): dataframe - train or test data
+            X (pd.DataFrame): data set
 
         Returns:
-            _type_: data frame with no null values, sent to mdoel selection.
+            pd.DataFrame: data frame with no null values, ready for fold train-test split
         """
         return X.interpolate(
             method='linear', 
             limit_direction='both'
         )
 
-    def data_transformer_object(self):
-        """
-        This method is responsible for performing data transformation - Standard-Scaling. 
-        """
-        try:
-
-            data_pipleline = Pipeline(
-                steps=[
-                    ("imputer", FunctionTransformer(self.interpolate_neighbors)),
-                ]
-            )
-            logging.info("data transformation pipeline is created.")
-
-            preprocessor = ColumnTransformer(
-                [
-                    ("data_pipleline", data_pipleline, self.feature)
-                ]
-            )
-            logging.info("column transformer is initiated.")
-
-            return preprocessor
-        
-        except Exception as e:
-            raise CustomException(e, sys)
 
     def initiate_data_transformation(self):
         try:
-            preprocessing_obj = self.data_transformer_object()
-            logging.info("preprocessing object is created.")
 
-            train_array = preprocessing_obj.fit_transform(self.train)
-            logging.info("Training data successfully transformed.")
+            for file_path in self.data_path.data_path.glob("*.csv"):
+                df = pd.read_csv(filepath_or_buffer=file_path)
+                df["Datetime"] = pd.to_datetime(df["Datetime"], utc=True)
+                logging.info(f"Read the {file_path} csv file")
 
-            test_array = preprocessing_obj.transform(self.test)
-            logging.info("Test data successfully transformed.")
+                df['Close'] = self.interpolate_neighbors(df['Close'])
+                logging.info("{file_path} successfully transformed.")
 
-            return (
-                train_array, 
-                test_array, 
-                preprocessing_obj
-            )
+                logging.info(f"Yielding the datafram {file_path}")
+                yield (
+                    file_path,
+                    df
+                )
 
         except Exception as e:
             raise CustomException(e, sys)

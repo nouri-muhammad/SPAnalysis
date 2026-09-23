@@ -4,7 +4,7 @@ from data_scraping.yfinance_api import YFinanceManager
 
 from spanalysis.data_ingestion import DataIngestion
 from spanalysis.data_transformation import DataTransformation
-
+from logger import logging
 
 
 sp500 = SP500()
@@ -44,10 +44,18 @@ yfm = YFinanceManager(
 
 yfm.download_all()
 
+# all the data is downloaded and processing begins
 
-ingestion_obj = DataIngestion()
-train_data, test_data = ingestion_obj.initiate_data_ingestion()
+transform_obj = DataTransformation()
 
-transform_obj = DataTransformation(train=train_data, test=test_data)
-train_array, test_array, preprocessing_obj = transform_obj.initiate_data_transformation()
-print(train_array)
+for file_path, clean_df in transform_obj.initiate_data_transformation():
+    logging.info("Starting ingestion for {file_path}")
+    ingestion_obj = DataIngestion(df=clean_df)
+
+    for train, test in ingestion_obj.initiate_data_ingestion():
+        pass
+        # logging.info(
+        #     f"{file_path.name}: "
+        #     f"train={len(train)}, "
+        #     f"test={len(test)}"
+        # )
